@@ -1,7 +1,6 @@
 import app from "./app.js";
 import { PORT } from "./config/envConfig.js";
 import connectDB from "./db/connectDB.js";
-import dot from "dotenv";
 connectDB()
   .then(() => {
     app.listen(PORT, () => {
