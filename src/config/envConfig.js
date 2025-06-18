@@ -21,6 +21,6 @@ const config = {
 
 const PORT = process.env.PORT || 8000;
 const NODE_ENV = process.env.NODE_ENV;
-const DB_CONFIG = config[process.env.NODE_ENV] || config["development"];
+const DB_CONFIG = config[process.env.NODE_ENV] || config.development;
 
-export { NODE_ENV, PORT, DB_CONFIG };
+export { DB_CONFIG, NODE_ENV, PORT };
