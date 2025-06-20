@@ -1,7 +1,7 @@
 import AsyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/apiError.js";
-import User from "../models/user.model.js";
+import { User } from "../models/user.model.js";
 
 // register user handler
 const registrationHandler = AsyncHandler(async (req, res) => {
@@ -17,12 +17,12 @@ const registrationHandler = AsyncHandler(async (req, res) => {
     throw new ApiError(400, "User creation failed");
   }
 
-  const { unhashedToken, hashedToken, tokenExpiry } = newUser.generateRandomToken(10);
-  console.log(unhashedToken, hashedToken, tokenExpiry);
+  const { hashedToken, tokenExpiry } = newUser.generateRandomToken(10);
 
   newUser.verificationToken = hashedToken;
   newUser.verificationTokenExpiry = tokenExpiry;
-  const user = await newUser.save().select("-password");
+  await newUser.save();
+  const user = await User.findById(newUser._id).select("-password", "-verificationToken", "-verificationTokenExpiry");
   // send email
   return res.status(201).json(new ApiResponse(201, "User created successfully", user));
 });
