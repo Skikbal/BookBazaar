@@ -2,7 +2,7 @@ import AsyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
-
+import { sendEmail, emailVerificationMailgenContent } from "../services/mail.service.js";
 // register user handler
 const registrationHandler = AsyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -11,19 +11,25 @@ const registrationHandler = AsyncHandler(async (req, res) => {
   if (existingUser) {
     throw new ApiError(400, "User already exists");
   }
-
-  const newUser = await User.create({ email, password });
+  const userName = email.split("@")[0];
+  const newUser = await User.create({ email, password, userName });
   if (!newUser) {
     throw new ApiError(400, "User creation failed");
   }
 
-  const { hashedToken, tokenExpiry } = newUser.generateRandomToken(10);
+  const { unhashedToken, hashedToken, tokenExpiry } = newUser.generateRandomToken(10);
 
   newUser.verificationToken = hashedToken;
   newUser.verificationTokenExpiry = tokenExpiry;
   await newUser.save();
-  const user = await User.findById(newUser._id).select("-password", "-verificationToken", "-verificationTokenExpiry");
+  const user = await User.findById(newUser._id).select({ password: 0, verificationToken: 0, verificationTokenExpiry: 0 });
   // send email
+  await sendEmail({
+    email,
+    subject: "Verify your email address",
+    mailgenContent: emailVerificationMailgenContent(user.userName, unhashedToken),
+  });
+
   return res.status(201).json(new ApiResponse(201, "User created successfully", user));
 });
 export { registrationHandler };
