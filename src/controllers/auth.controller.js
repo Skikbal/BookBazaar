@@ -90,5 +90,14 @@ const verifyUserHandler = AsyncHandler(async (req, res) => {
   await user.save();
   return res.status(200).json(new ApiResponse(200, "User verified successfully"));
 });
-
-export { registrationHandler, loginHandler, verifyUserHandler };
+// get profile handler
+const getProfileHandler = AsyncHandler(async (req, res) => {
+  const id = req.user._id;
+  const user = await User.findById(id).select({ password: 0, refreshToken: 0, verificationToken: 0, verificationTokenExpiry: 0 });
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  return res.status(200).json(new ApiResponse(200, "Profile fetched successfully", user));
+});
+// logout handler
+export { registrationHandler, loginHandler, verifyUserHandler, getProfileHandler };

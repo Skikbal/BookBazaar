@@ -59,6 +59,7 @@ userSchema.methods.generateToken = function () {
       _id: this._id,
       email: this.email,
       role: this.role,
+      isVerified: this.isVerified,
 
     },
     ACCESS_TOKEN_SECRET,
@@ -71,6 +72,7 @@ userSchema.methods.generateToken = function () {
       _id: this._id,
       email: this.email,
       role: this.role,
+      isVerified: this.isVerified,
     },
     REFRESH_TOKEN_SECRET,
     {
