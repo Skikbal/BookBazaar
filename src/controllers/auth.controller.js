@@ -3,6 +3,8 @@ import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
 import { sendEmail, emailVerificationMailgenContent } from "../services/mail.service.js";
+import { VERIFICATION_URL } from "../config/envConfig.js";
+import crypto from "crypto";
 // register user handler
 const registrationHandler = AsyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -23,11 +25,12 @@ const registrationHandler = AsyncHandler(async (req, res) => {
   newUser.verificationTokenExpiry = tokenExpiry;
   await newUser.save();
   const user = await User.findById(newUser._id).select({ password: 0, verificationToken: 0, verificationTokenExpiry: 0 });
+  const verificationUrl = `${VERIFICATION_URL}/${unhashedToken}`;
   // send email
   await sendEmail({
     email,
     subject: "Verify your email address",
-    mailgenContent: emailVerificationMailgenContent(user.userName, unhashedToken),
+    mailgenContent: emailVerificationMailgenContent(user.userName, verificationUrl),
   });
 
   return res.status(201).json(new ApiResponse(201, "User created successfully", user));
@@ -64,4 +67,28 @@ const loginHandler = AsyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Login successful", userData));
 });
 
-export { registrationHandler, loginHandler };
+// verify user handler
+const verifyUserHandler = AsyncHandler(async (req, res) => {
+  const { token } = req.params;
+
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  const user = await User.findOne({
+    $and: [
+      { verificationToken: hashedToken },
+      { verificationTokenExpiry: { $gt: Date.now() } },
+    ],
+  });
+
+  if (!user) {
+    throw new ApiError(404, "Invalid or expired token");
+  }
+
+  user.isVerified = true;
+  user.verificationToken = undefined;
+  user.verificationTokenExpiry = undefined;
+  await user.save();
+  return res.status(200).json(new ApiResponse(200, "User verified successfully"));
+});
+
+export { registrationHandler, loginHandler, verifyUserHandler };

@@ -83,7 +83,7 @@ userSchema.methods.generateToken = function () {
 // generate random tokens
 userSchema.methods.generateRandomToken = function (expiry) {
   const unhashedToken = crypto.randomBytes(32).toString("hex");
-  const hashedToken = crypto.createHash("sha256").update("unHashedToken").digest("hex");
+  const hashedToken = crypto.createHash("sha256").update(unhashedToken).digest("hex");
   const tokenExpiry = Date.now() + (expiry * 60 * 1000);
   return { unhashedToken, hashedToken, tokenExpiry }; // unhashedToken, hashedToken, tokenExpiry;
 };
