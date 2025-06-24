@@ -34,5 +34,5 @@ export default defineConfig([
     semi: true,
     // ...
   }),
-  globalIgnores(["node_modules/", ".vscode/", ".git/", ".env", ".env_sample", "LISCENSE", "README.md", "package.json", "package-lock.json", ".github/", ".gitignore", ".husky/"]),
+  globalIgnores(["node_modules/", ".vscode/", ".git/", ".env", "envsample", "LISCENSE", "README.md", "package.json", "package-lock.json", ".github/", ".gitignore", ".husky/", "src/middleware/errorHandler.middleware.js"]),
 ]);

@@ -1,10 +1,19 @@
 import { Router } from "express";
-import { registrationHandler } from "../controllers/auth.controller.js";
+import { getProfileHandler, loginHandler, logoutHandler, regenrateTokenHandler, registrationHandler, resendVerificationEmailHandler, verifyUserHandler } from "../controllers/auth.controller.js";
 import validate from "../middleware/validation.middleware.js";
 import { registerSchema } from "../validators/auth.validator.js";
+import isAuthenticated from "../middleware/isAuthenticated.middleware.js";
 
 const authRouter = Router();
 
-authRouter.route("/signup").post(validate(registerSchema), registrationHandler);
+// public routes
+authRouter.route("/register").post(validate(registerSchema), registrationHandler);
+authRouter.route("/login").post(loginHandler);
+authRouter.route("/verify/:token").get(verifyUserHandler);
+authRouter.route("/resend-verification").post(resendVerificationEmailHandler);
+authRouter.route("/refresh-tokens").get(regenrateTokenHandler);
+// private routes
+authRouter.route("/me").get(isAuthenticated, getProfileHandler);
+authRouter.route("/logout").post(isAuthenticated, logoutHandler);
 
 export default authRouter;
