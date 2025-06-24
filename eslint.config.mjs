@@ -24,7 +24,6 @@ export default defineConfig([
       "no-unused-vars": "warn", // Warn about unused variables
       "arrow-body-style": ["error", "always"], // Disable arrow body style
     },
-    // ignores: ["node_modules/*", ".vscode/*", ".git/*", ".env", ".env_sample", "LISCENSE", "README.md", "package.json", "package-lock.json", ".github/*", ".gitignore", ".husky/*"],
   },
   pluguinJs.configs.recommended,
   stylistic.configs.customize({

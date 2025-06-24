@@ -6,8 +6,8 @@ const reviewSchema = new Schema({
   },
   rating: {
     type: Number,
-    enum: ratingEnum,
-    default: availableRatings.ONE,
+    enum: availableRatings,
+    default: ratingEnum.ONE,
   },
   bookId: {
     type: Schema.Types.ObjectId,
