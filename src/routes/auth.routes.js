@@ -15,4 +15,5 @@ authRouter.route("/refresh-tokens").get(regenrateTokenHandler);
 // private routes
 authRouter.route("/me").get(isAuthenticated, getProfileHandler);
 authRouter.route("/logout").post(isAuthenticated, logoutHandler);
+
 export default authRouter;
