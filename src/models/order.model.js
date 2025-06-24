@@ -19,8 +19,8 @@ const orderSchema = new Schema({
   },
   status: {
     type: String,
-    enum: orderStatusEnum,
-    default: availbaleOrderStatus.PENDING,
+    enum: availbaleOrderStatus,
+    default: orderStatusEnum.PENDING,
   },
   shippingAddress: {
     type: String,
