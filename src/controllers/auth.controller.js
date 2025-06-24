@@ -3,12 +3,12 @@ import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
 import { sendEmail, emailVerificationMailgenContent } from "../services/mail.service.js";
-import { VERIFICATION_URL } from "../config/envConfig.js";
+import { VERIFICATION_URL, REFRESH_TOKEN_SECRET } from "../config/envConfig.js";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
 // register user handler
 const registrationHandler = AsyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  // check if user already exists
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     throw new ApiError(400, "User already exists");
@@ -90,6 +90,40 @@ const verifyUserHandler = AsyncHandler(async (req, res) => {
   await user.save();
   return res.status(200).json(new ApiResponse(200, "User verified successfully"));
 });
+
+// resend verification email
+const resendVerificationEmailHandler = AsyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    throw new ApiError(400, "Email is required");
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  if (user.isVerified) {
+    throw new ApiError(400, "User is already verified");
+  }
+
+  const { unhashedToken, hashedToken, tokenExpiry } = user.generateRandomToken(10);
+
+  user.verificationToken = hashedToken;
+  user.verificationTokenExpiry = tokenExpiry;
+  await user.save();
+  const verificationUrl = `${VERIFICATION_URL}/${unhashedToken}`;
+  // send email
+  await sendEmail({
+    email,
+    subject: "Verify your email address",
+    mailgenContent: emailVerificationMailgenContent(user.userName, verificationUrl),
+  });
+  return res.status(200).json(new ApiResponse(200, "Verification email sent successfully"));
+});
+
 // get profile handler
 const getProfileHandler = AsyncHandler(async (req, res) => {
   const id = req.user._id;
@@ -119,4 +153,44 @@ const logoutHandler = AsyncHandler(async (req, res) => {
     .cookie("refreshToken", "", cookiesOptions)
     .json(new ApiResponse(200, "Logout successful"));
 });
-export { registrationHandler, loginHandler, verifyUserHandler, getProfileHandler, logoutHandler };
+
+// regenrate access token & refresh token handler
+const regenrateTokenHandler = AsyncHandler(async (req, res) => {
+  const { refreshToken } = req.cookies;
+  if (!refreshToken) {
+    throw new ApiError(401, "User is not authenticated");
+  }
+  let decode;
+  try {
+    decode = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
+  }
+  catch (error) {
+    throw new ApiError(401, "Invalid or Expired Refresh Token", error);
+  }
+  const user = await User.findById(decode._id);
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  if (user.refreshToken !== refreshToken) {
+    throw new ApiError(401, "Refresh token does not match. Possible token reuse detected.");
+  }
+  const { accessToken, refreshToken: newRefreshToken } = user.generateToken();
+
+  const cookiesOptions = {
+    httpOnly: true,
+    secure: true,
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
+  };
+
+  user.refreshToken = newRefreshToken;
+  await user.save();
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, cookiesOptions)
+    .cookie("refreshToken", newRefreshToken, cookiesOptions)
+    .json(new ApiResponse(200, "Token regenrated successfully"));
+});
+
+export { registrationHandler, loginHandler, verifyUserHandler, getProfileHandler, logoutHandler, resendVerificationEmailHandler, regenrateTokenHandler };
