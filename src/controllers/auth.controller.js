@@ -9,6 +9,10 @@ import jwt from "jsonwebtoken";
 // register user handler
 const registrationHandler = AsyncHandler(async (req, res) => {
   const { email, password } = req.body;
+// register user handler
+const registrationHandler = AsyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+  // check if user already exists
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     throw new ApiError(400, "User already exists");
