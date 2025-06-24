@@ -100,4 +100,23 @@ const getProfileHandler = AsyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, "Profile fetched successfully", user));
 });
 // logout handler
-export { registrationHandler, loginHandler, verifyUserHandler, getProfileHandler };
+const logoutHandler = AsyncHandler(async (req, res) => {
+  const _id = req.user._id;
+  const user = await User.findById(_id);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  user.refreshToken = undefined;
+  await user.save();
+  const cookiesOptions = {
+    httpOnly: true,
+    secure: true,
+    maxAge: 0,
+  };
+  return res
+    .status(200)
+    .cookie("accessToken", "", cookiesOptions)
+    .cookie("refreshToken", "", cookiesOptions)
+    .json(new ApiResponse(200, "Logout successful"));
+});
+export { registrationHandler, loginHandler, verifyUserHandler, getProfileHandler, logoutHandler };

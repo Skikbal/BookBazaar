@@ -15,7 +15,7 @@ const isAuthenticated = async (req, res, next) => {
     next();
   }
   catch (error) {
-    return next(new ApiError(401, "Invalid or Expired Access Token", error));
+    next(new ApiError(401, "Invalid or Expired Access Token", error));
   }
 };
 
