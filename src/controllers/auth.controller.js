@@ -6,9 +6,11 @@ import { sendEmail, emailVerificationMailgenContent } from "../services/mail.ser
 import { VERIFICATION_URL, REFRESH_TOKEN_SECRET } from "../config/envConfig.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
+
 // register user handler
 const registrationHandler = AsyncHandler(async (req, res) => {
   const { email, password } = req.body;
+  // check if user already exists
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     throw new ApiError(400, "User already exists");
