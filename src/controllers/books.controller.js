@@ -72,9 +72,14 @@ const getAllBooksHandler = AsyncHandler(async (req, res) => {
 });
 
 // get books by id
-// const getBookByIdHandler = AsyncHandler(async (req, res) => {
-
-// });
+const getBookByIdHandler = AsyncHandler(async (req, res) => {
+  const bookId = req.params._id;
+  const book = await Book.findById(bookId);
+  if (!book) {
+    throw new ApiError(404, "Book not found");
+  }
+  return res.status(200).json(new ApiResponse(200, "Book fetched successfully", book));
+});
 // // update books
 // const updateBoookHandler = AsyncHandler(async (req, res) => {
 
@@ -87,7 +92,7 @@ const getAllBooksHandler = AsyncHandler(async (req, res) => {
 export {
   createBookHandler,
   getAllBooksHandler,
-  // getBookByIdHandler,
+  getBookByIdHandler,
   // updateBoookHandler,
   // deleteBookHandler,
 };
