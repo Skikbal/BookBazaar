@@ -61,11 +61,17 @@ const createBookHandler = AsyncHandler(async (req, res) => {
 
   return res.status(201).json(new ApiResponse(201, "Book created successfully", newBook));
 });
-// // get all books handler
-// const getAllBooksHandler = AsyncHandler(async (req, res) => {
 
-// });
-// // get books by id
+// get all books handler
+const getAllBooksHandler = AsyncHandler(async (req, res) => {
+  const books = await Book.find();
+  if (!books) {
+    throw new ApiError(500, "Failed to fetch books");
+  }
+  return res.status(200).json(new ApiResponse(200, "Books fetched successfully", books));
+});
+
+// get books by id
 // const getBookByIdHandler = AsyncHandler(async (req, res) => {
 
 // });
@@ -80,7 +86,7 @@ const createBookHandler = AsyncHandler(async (req, res) => {
 
 export {
   createBookHandler,
-  // getAllBooksHandler,
+  getAllBooksHandler,
   // getBookByIdHandler,
   // updateBoookHandler,
   // deleteBookHandler,
