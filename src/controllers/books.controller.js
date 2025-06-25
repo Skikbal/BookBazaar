@@ -61,14 +61,25 @@ const createBookHandler = AsyncHandler(async (req, res) => {
 
   return res.status(201).json(new ApiResponse(201, "Book created successfully", newBook));
 });
-// // get all books handler
-// const getAllBooksHandler = AsyncHandler(async (req, res) => {
 
-// });
-// // get books by id
-// const getBookByIdHandler = AsyncHandler(async (req, res) => {
+// get all books handler
+const getAllBooksHandler = AsyncHandler(async (req, res) => {
+  const books = await Book.find();
+  if (!books) {
+    throw new ApiError(500, "Failed to fetch books");
+  }
+  return res.status(200).json(new ApiResponse(200, "Books fetched successfully", books));
+});
 
-// });
+// get books by id
+const getBookByIdHandler = AsyncHandler(async (req, res) => {
+  const bookId = req.params._id;
+  const book = await Book.findById(bookId);
+  if (!book) {
+    throw new ApiError(404, "Book not found");
+  }
+  return res.status(200).json(new ApiResponse(200, "Book fetched successfully", book));
+});
 // // update books
 // const updateBoookHandler = AsyncHandler(async (req, res) => {
 
@@ -80,8 +91,8 @@ const createBookHandler = AsyncHandler(async (req, res) => {
 
 export {
   createBookHandler,
-  // getAllBooksHandler,
-  // getBookByIdHandler,
+  getAllBooksHandler,
+  getBookByIdHandler,
   // updateBoookHandler,
   // deleteBookHandler,
 };

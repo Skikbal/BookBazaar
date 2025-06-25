@@ -22,7 +22,4 @@ app.use("/api/v1/books", bookRouter);
 // GLOBAL ERROR HANDLER
 app.use(errorHandler);
 
-// GLOBAL ERROR HANDLER
-app.use(errorHandler);
-
 export default app;
