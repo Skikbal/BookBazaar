@@ -16,4 +16,5 @@ bookRouter.route("/books").get(isAuthenticated, getAllBooksHandler);
 bookRouter.route("/books/:_id").get(isAuthenticated, getAllBooksHandler);
 bookRouter.route("/delete-books/:_id").delete(isAuthenticated, isAdmin, getAllBooksHandler);
 
+
 export default bookRouter;
