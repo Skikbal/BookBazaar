@@ -3,9 +3,15 @@ import { orderStatusEnum, availbaleOrderStatus } from "../constants/constants.js
 const orderSchema = new Schema({
   items: [
     {
-      type: Schema.Types.ObjectId,
-      ref: "Books",
-      required: true,
+      bookId: {
+        type: Schema.Types.ObjectId,
+        ref: "Books",
+        required: true,
+      },
+      quantity: {
+        type: Number,
+        required: true,
+      },
     },
   ],
   orderedBy: {
@@ -22,10 +28,34 @@ const orderSchema = new Schema({
     enum: availbaleOrderStatus,
     default: orderStatusEnum.PENDING,
   },
-  shippingAddress: {
-    type: String,
-    required: true,
-  },
+  shippingAddress: [
+    {
+      address: {
+        type: String,
+        required: true,
+      },
+      city: {
+        type: String,
+        required: true,
+      },
+      state: {
+        type: String,
+        required: true,
+      },
+      country: {
+        type: String,
+        required: true,
+      },
+      phone: {
+        type: String,
+        required: true,
+      },
+      postalCode: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
 
 }, { timestamps: true });
 export const Order = mongoose.model("Orders", orderSchema);
