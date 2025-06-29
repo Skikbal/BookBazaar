@@ -73,18 +73,69 @@ const createOrderHandler = AsyncHandler(async (req, res) => {
   return res.status(201).json(new ApiResponse(201, "Order created successfully", order));
 });
 
-// // get orders
-// const getOrdersHandler = AsyncHandler(async (req, res) => {
+// get orders
+const getUserOrdersHandler = AsyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const orders = await Order.find({ orderedBy: userId });
+  if (!orders) {
+    throw new ApiError(404, "Orders not found");
+  }
+  return res.status(200).json(new ApiResponse(200, "Orders fetched successfully", orders));
+});
 
-// });
+// get order by id
+const getOrderByIdHandler = AsyncHandler(async (req, res) => {
+  const orderId = req.params.id;
+  const order = await Order.aggregate([
+    {
+      $match: { _id: new mongoose.Types.ObjectId(orderId) },
+    },
+    {
+      $unwind: "$items",
+    },
+    {
+      $lookup: {
+        from: "books",
+        localField: "items.bookId",
+        foreignField: "_id",
+        as: "bookInfo",
+      },
+    },
+    {
+      $unwind: {
+        path: "$bookInfo",
+        preserveNullAndEmptyArrays: true, // in case no book match
+      },
+    },
+    {
+      $group: {
+        _id: "$_id",
+        orderedBy: { $first: "$orderedBy" },
+        totalPrice: { $first: "$totalPrice" },
+        status: { $first: "$status" },
+        shippingAddress: { $first: "$shippingAddress" },
+        createdAt: { $first: "$createdAt" },
+        updatedAt: { $first: "$updatedAt" },
+        items: {
+          $push: {
+            _id: "$items._id",
+            quantity: "$items.quantity",
+            bookId: "$items.bookId",
+            book: "$bookInfo",
+          },
+        },
+      },
+    },
+  ]);
 
-// // get order by id
-// const getOrderByIdHandler = AsyncHandler(async (req, res) => {
-
-// });
+  if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+  return res.status(200).json(new ApiResponse(200, "Order fetched successfully", order));
+});
 
 export {
   createOrderHandler,
-//   getOrdersHandler,
-//   getOrderByIdHandler,
+  getUserOrdersHandler,
+  getOrderByIdHandler,
 };
