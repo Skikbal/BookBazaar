@@ -82,7 +82,6 @@ const getBookByIdHandler = AsyncHandler(async (req, res) => {
 });
 // // update books
 // const updateBoookHandler = AsyncHandler(async (req, res) => {
-
 // });
 // delete books
 const deleteBookHandler = AsyncHandler(async (req, res) => {
