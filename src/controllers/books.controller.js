@@ -1,6 +1,6 @@
-import AsyncHandler from "../utils/AsyncHandler.js";
+import AsyncHandler from "../utils/asyncHandler.js";
 import { Book } from "../models/book.model.js";
-import ApiResponse from "../utils/ApiResponse.js";
+import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/apiError.js";
 import uploadToCloudinary from "../services/cloudinary.service.js";
 
@@ -73,19 +73,67 @@ const getAllBooksHandler = AsyncHandler(async (req, res) => {
 
 // get books by id
 const getBookByIdHandler = AsyncHandler(async (req, res) => {
-  const bookId = req.params._id;
+  const bookId = req.params.id;
   const book = await Book.findById(bookId);
   if (!book) {
     throw new ApiError(404, "Book not found");
   }
   return res.status(200).json(new ApiResponse(200, "Book fetched successfully", book));
 });
-// // update books
-// const updateBoookHandler = AsyncHandler(async (req, res) => {
-// });
+
+// update books
+const updateBoookHandler = AsyncHandler(async (req, res) => {
+  const bookId = req.params.id;
+
+  const {
+    title,
+    description,
+    genre,
+    price,
+    stock,
+  } = req.body;
+
+  let coverImageUrl;
+  let uploadImages;
+  const coverImage = req?.files?.coverImage[0];
+  if (coverImage) {
+    coverImageUrl = await uploadToCloudinary(coverImage);
+  }
+  const images = req?.files?.images;
+  if (images) {
+    uploadImages = await Promise.all(images.map(async (image) => {
+      const imageUrl = await uploadToCloudinary(image);
+      return ({
+        url: imageUrl?.url ?? "",
+        mimeType: imageUrl?.mimetype ?? "",
+        size: imageUrl?.size ?? 0,
+      });
+    }));
+  }
+  const book = await Book.findByIdAndUpdate(bookId, {
+    title,
+    description,
+    genre,
+    price,
+    stock,
+    ...(coverImageUrl && {
+      coverImage: {
+        url: coverImageUrl?.url ?? "",
+        mimeType: coverImageUrl?.mimetype ?? "",
+        size: coverImageUrl?.size ?? 0,
+      },
+    }),
+    ...(uploadImages?.length > 0 && { images: uploadImages }),
+  },
+  { new: true });
+  if (!book) {
+    throw new ApiError(404, "Book update failed");
+  }
+  return res.status(200).json(new ApiResponse(200, "Book updated successfully", book));
+});
 // delete books
 const deleteBookHandler = AsyncHandler(async (req, res) => {
-  const bookId = req.params._id;
+  const bookId = req.params.id;
   const book = await Book.findByIdAndDelete(bookId);
   if (!book) {
     throw new ApiError(404, "Book not found");
@@ -97,6 +145,6 @@ export {
   createBookHandler,
   getAllBooksHandler,
   getBookByIdHandler,
-  // updateBoookHandler,
+  updateBoookHandler,
   deleteBookHandler,
 };
