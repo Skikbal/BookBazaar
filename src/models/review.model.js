@@ -4,6 +4,22 @@ const reviewSchema = new Schema({
   review: {
     type: String,
   },
+  images: [
+    {
+      url: {
+        type: String,
+        trim: true,
+      },
+      mimeType: {
+        type: String,
+        default: undefined,
+      },
+      size: {
+        type: Number,
+        default: undefined,
+      },
+    },
+  ],
   rating: {
     type: Number,
     enum: availableRatings,
@@ -20,5 +36,7 @@ const reviewSchema = new Schema({
     required: true,
   },
 }, { timestamps: true });
+
+reviewSchema.index({ book: 1, reviewedBy: 1 }, { unique: true });
 
 export const Review = mongoose.model("Reviews", reviewSchema);
