@@ -19,7 +19,6 @@ const createBookHandler = AsyncHandler(async (req, res) => {
   } = req.body;
 
   const userId = req.user._id;
-
   const coverImage = req?.files?.coverImage[0];
   const coverImageUrl = await uploadToCloudinary(coverImage);
 

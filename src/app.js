@@ -2,6 +2,7 @@ import express from "express";
 import healthChckRouter from "./routes/healthCheck.routes.js";
 import authRouter from "./routes/auth.routes.js";
 import bookRouter from "./routes/books.routes.js";
+import orderRouter from "./routes/order.routes.js";
 
 import cookieParser from "cookie-parser";
 import errorHandler from "./middleware/errorHandler.middleware.js";
@@ -18,6 +19,7 @@ app.use(express.static("public"));
 app.use("/api/v1", healthChckRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/books", bookRouter);
+app.use("/api/v1/orders", orderRouter);
 
 // GLOBAL ERROR HANDLER
 app.use(errorHandler);
