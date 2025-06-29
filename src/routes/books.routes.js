@@ -11,8 +11,8 @@ bookRouter.route("/create").post(isAuthenticated, isAdmin, upload.fields([
   { name: "coverImage", maxCount: 1 },
   { name: "images", maxCount: 6 },
 ]), createBookHandler);
-
 bookRouter.route("/books").get(isAuthenticated, getAllBooksHandler);
 bookRouter.route("/books/:_id").get(isAuthenticated, getAllBooksHandler);
+bookRouter.route("/delete-books/:_id").delete(isAuthenticated, isAdmin, getAllBooksHandler);
 
 export default bookRouter;
