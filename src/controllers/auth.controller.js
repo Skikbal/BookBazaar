@@ -6,6 +6,7 @@ import { sendEmail, emailVerificationMailgenContent } from "../services/mail.ser
 import { VERIFICATION_URL, REFRESH_TOKEN_SECRET } from "../config/envConfig.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
+import { Cart } from "../models/cart.model.js";
 
 // register user handler
 const registrationHandler = AsyncHandler(async (req, res) => {
@@ -27,6 +28,8 @@ const registrationHandler = AsyncHandler(async (req, res) => {
   newUser.verificationTokenExpiry = tokenExpiry;
   await newUser.save();
   const user = await User.findById(newUser._id).select({ password: 0, verificationToken: 0, verificationTokenExpiry: 0 });
+  // create cart with user creation
+  await Cart.create({ userId: user._id });
   const verificationUrl = `${VERIFICATION_URL}/${unhashedToken}`;
   // send email
   await sendEmail({
