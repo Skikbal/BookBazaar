@@ -17,7 +17,7 @@ export const ratingEnum = {
 export const availableRatings = Object.values(ratingEnum);
 
 export const orderStatusEnum = {
-  "PENDING": "pending",
+  "CREATED": "created",
   "DELIVERED": "delivered",
   "CANCELLED": "cancelled",
   "SHIPPED": "shipped",
