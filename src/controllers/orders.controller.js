@@ -4,11 +4,11 @@ import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/apiError.js";
 import { Book } from "../models/book.model.js";
 import mongoose from "mongoose";
-
+import razorpay from "../config/razorPay.js";
+import { RAZORPAY_APIKEY } from "../config/envConfig.js";
 // create order
 const createOrderHandler = AsyncHandler(async (req, res) => {
   const { items, shippingAddress } = req.body;
-
   // fetch books in one query
   const bookIds = items.map((item) => {
     return item.bookId;
@@ -36,41 +36,20 @@ const createOrderHandler = AsyncHandler(async (req, res) => {
   const total = await orderItemsPrice.reduce(
     (sum, price) => { return sum + price; },
     0);
+  // integrate payment gateway
+  const options = {
+    amount: total * 100, // Convert amount to paise
+    currency: "INR",
+    receipt: "receipt_" + Math.random().toString(36).substring(7),
+  };
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
-  let order;
-  try {
-    const createOrder = await Order.create([{
-      items,
-      shippingAddress,
-      totalPrice: total,
-      orderedBy: req.user._id,
-    }], { session });
+  const order = await razorpay.orders.create(options);
+  order.shippingAddress = shippingAddress[0];
+  order.key = RAZORPAY_APIKEY;
+  order.items = items;
+  order.orderedBy = req.user._id;
 
-    order = createOrder[0];
-
-    if (!order) {
-      throw new ApiError(500, "Failed to create order");
-    }
-
-    await Promise.all(
-      items.map(async (item) => {
-        await Book.findByIdAndUpdate(item.bookId, {
-          $inc: { stock: -item.quantity },
-        }, { session });
-      }));
-    await session.commitTransaction();
-  }
-  catch (error) {
-    await session.abortTransaction();
-    throw new ApiError(500, "Failed to create order", error);
-  }
-  finally {
-    session.endSession();
-  }
-
-  return res.status(201).json(new ApiResponse(201, "Order created successfully", order));
+  return res.status(200).json(new ApiResponse(201, "Payment initiated", order));
 });
 
 // get orders
