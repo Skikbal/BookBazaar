@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
 
 const apiKeySchema = new Schema({
-  key: {
+  apikey: {
     type: String,
     required: true,
     unique: true,
@@ -14,6 +14,13 @@ const apiKeySchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Users",
     required: true,
+  },
+  active: {
+    type: Boolean,
+    default: true,
+  },
+  lastUsedAt: {
+    type: Date,
   },
 }, { timestamps: true });
 
