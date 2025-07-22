@@ -23,6 +23,12 @@ const userSchema = new Schema({
   refreshToken: {
     type: String,
   },
+  apikey: {
+    type: String,
+  },
+  apikeyExpiry: {
+    type: Date,
+  },
   role: {
     type: String,
     enum: availableRoles,

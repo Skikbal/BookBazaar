@@ -55,7 +55,12 @@ const loginHandler = AsyncHandler(async (req, res) => {
   if (!isPasswordCorrect) {
     throw new ApiError(400, "Invalid username or password");
   }
+  // jwt
   const { accessToken, refreshToken } = await user.generateToken();
+  // apikey
+  const { unhashedToken, hashedToken, tokenExpiry } = user.generateRandomToken(10);
+  user.apikey = hashedToken;
+  user.apikeyExpiry = tokenExpiry;
   user.refreshToken = refreshToken;
   await user.save();
   const userData = await User.findById(user._id).select({ password: 0, refreshToken: 0, verificationToken: 0, verificationTokenExpiry: 0 });
@@ -69,6 +74,7 @@ const loginHandler = AsyncHandler(async (req, res) => {
     .status(200)
     .cookie("accessToken", accessToken, cookiesOptions)
     .cookie("refreshToken", refreshToken, cookiesOptions)
+    .setHeader("x-api-key", unhashedToken)
     .json(new ApiResponse(200, "Login successful", userData));
 });
 
@@ -198,4 +204,23 @@ const regenrateTokenHandler = AsyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "Token regenrated successfully"));
 });
 
-export { registrationHandler, loginHandler, verifyUserHandler, getProfileHandler, logoutHandler, resendVerificationEmailHandler, regenrateTokenHandler };
+const refreshApikeyHandler = AsyncHandler(async (req, res) => {
+  const { apikey } = req.params;
+  if (!apikey) {
+    throw new ApiError(400, "API key is required");
+  }
+  const hashedApiKey = crypto.createHash("sha256").update(apikey).digest("hex");
+  const user = await User.findOne({ apikey: hashedApiKey });
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  const { unhashedToken, hashedToken, tokenExpiry } = user.generateRandomToken(10);
+  user.apikey = hashedToken;
+  user.apikeyExpiry = tokenExpiry;
+  await user.save();
+  return res.status(200)
+    .setHeader("x-api-key", unhashedToken)
+    .json(new ApiResponse(200, "API key refreshed successfully"));
+});
+
+export { registrationHandler, loginHandler, verifyUserHandler, getProfileHandler, logoutHandler, resendVerificationEmailHandler, regenrateTokenHandler, refreshApikeyHandler };
