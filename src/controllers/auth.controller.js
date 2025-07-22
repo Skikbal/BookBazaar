@@ -7,7 +7,8 @@ import { VERIFICATION_URL, REFRESH_TOKEN_SECRET } from "../config/envConfig.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { Cart } from "../models/cart.model.js";
-
+import { ApiKey } from "../models/api-key.model.js";
+import { generateApikey } from "../utils/generateApikey.js";
 // register user handler
 const registrationHandler = AsyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -57,12 +58,23 @@ const loginHandler = AsyncHandler(async (req, res) => {
   }
   // jwt
   const { accessToken, refreshToken } = await user.generateToken();
-  // apikey
-  const { unhashedToken, hashedToken, tokenExpiry } = user.generateRandomToken(10);
-  user.apikey = hashedToken;
-  user.apikeyExpiry = tokenExpiry;
   user.refreshToken = refreshToken;
   await user.save();
+
+  // apikey
+  const existingApikey = await ApiKey.findOne({
+    generatedBy: user._id,
+    apikeyExpiry: { $gt: new Date() },
+    active: true,
+  });
+
+  if (existingApikey) {
+    existingApikey.active = false;
+    await existingApikey.save();
+  }
+
+  const rawApikey = await generateApikey(user._id);
+
   const userData = await User.findById(user._id).select({ password: 0, refreshToken: 0, verificationToken: 0, verificationTokenExpiry: 0 });
   const cookiesOptions = {
     httpOnly: true,
@@ -74,7 +86,7 @@ const loginHandler = AsyncHandler(async (req, res) => {
     .status(200)
     .cookie("accessToken", accessToken, cookiesOptions)
     .cookie("refreshToken", refreshToken, cookiesOptions)
-    .setHeader("x-api-key", unhashedToken)
+    .setHeader("x-api-key", rawApikey)
     .json(new ApiResponse(200, "Login successful", userData));
 });
 
