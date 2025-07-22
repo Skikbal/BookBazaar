@@ -14,7 +14,7 @@ const createOrderHandler = AsyncHandler(async (req, res) => {
     return item.bookId;
   });
 
-  const booksToOrder = await Book.find({ _id: { $in: bookIds } });
+  const booksToOrder = await Book.find({ _id: { $in: bookIds }, stock: { $gt: 0 } });
   if (!booksToOrder.length === items.length) {
     throw new ApiError(404, "Some books not found");
   }
