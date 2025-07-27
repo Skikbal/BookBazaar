@@ -8,20 +8,19 @@ import validate from "../middleware/validation.middleware.js";
 import parseForm from "../middleware/parseForm.middleware.js";
 import { addReviewHandler, deleteReviewHandler, listReviewsHandler } from "../controllers/reviews.controller.js";
 import reviewValidator from "../validators/reviews.validator.js";
-import verifyApiKey from "../middleware/verifyApikey.middleware.js";
 const bookRouter = Router();
 
 // user routes
-bookRouter.route("/").get(isAuthenticated, verifyApiKey, getAllBooksHandler);
-bookRouter.route("/books/:id").get(isAuthenticated, verifyApiKey, getBookByIdHandler);
+bookRouter.route("/").get(isAuthenticated, getAllBooksHandler);
+bookRouter.route("/books/:id").get(isAuthenticated, getBookByIdHandler);
 
 // admin routes
-bookRouter.route("/create").post(isAuthenticated, isAdmin, verifyApiKey, upload.fields([
+bookRouter.route("/create").post(isAuthenticated, isAdmin, upload.fields([
   { name: "coverImage", maxCount: 1 },
   { name: "images", maxCount: 6 },
 ]), parseForm(["genre", "price", "stock"]), validate(bookValidator), createBookHandler);
-bookRouter.route("/delete/:id").delete(isAuthenticated, isAdmin, verifyApiKey, deleteBookHandler);
-bookRouter.route("/update/:id").put(isAuthenticated, isAdmin, verifyApiKey, upload.fields([
+bookRouter.route("/delete/:id").delete(isAuthenticated, isAdmin, deleteBookHandler);
+bookRouter.route("/update/:id").put(isAuthenticated, isAdmin, upload.fields([
   { name: "coverImage", maxCount: 1 },
   { name: "images", maxCount: 6 },
 ]), parseForm(["genre", "price", "stock"]), validate(bookValidator), updateBoookHandler);
