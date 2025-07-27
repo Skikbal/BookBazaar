@@ -1,5 +1,5 @@
 import { Router } from "express";
-import isAuthenticated from "../middleware/isAuthenticated.middleware.js";
+import isAuthenticated, { isAuthenticated as isAuthWithOptions } from "../middleware/isAuthenticated.middleware.js";
 import isAdmin from "../middleware/isAdmin.middleware.js";
 import { createBookHandler, deleteBookHandler, getAllBooksHandler, getBookByIdHandler, updateBoookHandler } from "../controllers/books.controller.js";
 import { upload } from "../middleware/multer.middleware.js";
@@ -11,8 +11,8 @@ import reviewValidator from "../validators/reviews.validator.js";
 const bookRouter = Router();
 
 // user routes
-bookRouter.route("/").get(isAuthenticated, getAllBooksHandler);
-bookRouter.route("/books/:id").get(isAuthenticated, getBookByIdHandler);
+bookRouter.route("/").get(isAuthWithOptions(true), getAllBooksHandler);
+bookRouter.route("/:id").get(isAuthenticated, getBookByIdHandler);
 
 // admin routes
 bookRouter.route("/create").post(isAuthenticated, isAdmin, upload.fields([
