@@ -13,6 +13,7 @@ const verifyApiKey = async (req, res, next) => {
     const apikey = await ApiKey.findOne({
       apikey: hasedApiKey,
       apiKeyExpiry: { $gt: Date.now() },
+      active: true,
     });
     apikey.lastUsedAt = new Date(Date.now());
     await apikey.save();
